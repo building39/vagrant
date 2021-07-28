@@ -6,7 +6,7 @@ PRIVATE_KEY = "~/.ssh/id_rsa"
 PUBLIC_KEY  = '~/.ssh/id_rsa.pub'
 XCP_HOST    = "xencat"
 XCP_USER    = "root"
-XCP_PSWD    = "Nond0Quolth7"
+XCP_PSWD    = "********"
 
 servers=[
   {
