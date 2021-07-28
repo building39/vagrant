@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+API_VERSION = "2"
+PRIVATE_KEY = "~/.ssh/id_rsa"
+PUBLIC_KEY  = '~/.ssh/id_rsa.pub'
+XCP_HOST    = "xencat"
+XCP_USER    = "root"
+XCP_PSWD    = "Nond0Quolth7"
+
+servers=[
+  {
+    :hostname => "adcat",
+    :ipaddr => "192.168.2.57/24",
+    :box => "building39/focal",
+    :ram => 2048,
+    :cpu => 2
+  }
+]
+
+Vagrant.configure(API_VERSION) do |config|
+  servers.each do |machine|
+    config.ssh.insert_key = false
+    config.ssh.private_key_path = [PRIVATE_KEY, "~/.vagrant.d/insecure_private_key"]
+    config.vm.provision "file", source: PUBLIC_KEY, destination: "~/.ssh/authorized_keys"
+    config.vm.define machine[:hostname] do |node|
+      node.vm.box = machine[:box]
+      node.vm.network "public_network", bridge: "xenbr0"
+      node.vm.provider "xenserver" do |xs|
+        xs.xs_host = XCP_HOST
+        xs.xs_username = XCP_USER
+        xs.xs_password = XCP_PSWD
+        xs.name = machine[:hostname]
+        xs.pv = false
+        xs.memory = machine[:ram]
+        xs.use_himn = false
+      end
+      node.vm.hostname = machine[:hostname]
+    end
+    config.vm.provision "ansible" do |ansible|
+      ansible.become = true
+      ansible.extra_vars = { ipaddr: "#{machine[:ipaddr]}" }
+      ansible.limit = "#{machine[:hostname]}"
+      ansible.galaxy_roles_path = "../roles/"
+      ansible.playbook = "playbook.yaml"
+    end
+  end
+
+end

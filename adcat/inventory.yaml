@@ -1,0 +1,10 @@
+
+all:
+  vars: 
+    ansible_user: vagrant
+
+  children:
+    apachedirectory:
+      hosts:
+        adcat:
+          ansible_host: 192.168.2.57
